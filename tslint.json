@@ -1,0 +1,7 @@
+{
+  "extends": "tslint-config-semistandard",
+  "rules": {
+    "space-before-function-paren": [false, "always"],
+    "object-curly-spacing": [false, "always"]
+  }
+}
