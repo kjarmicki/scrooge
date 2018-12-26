@@ -1,4 +1,4 @@
-import {Config} from 'convict';
+import { Config } from 'convict';
 
 export type LoginAndPassword = {
   login: string;
@@ -21,16 +21,17 @@ type ConfigGroup = {
   [entity: string]: string
 };
 
+const LOGIN_AND_PASSWORD_SEPARATOR = '___';
 function parseLoginAndPassword(rawLoginAndPassword: string): LoginAndPassword {
-  const [login, password] = rawLoginAndPassword.split('___');
+  const [login, password] = rawLoginAndPassword.split(LOGIN_AND_PASSWORD_SEPARATOR);
   return { login, password };
 }
 
 function buildLoginsAndPasswords(convictLoginsAndPasswords: ConfigGroup): CredentialsStorageLoginsAndPasswords {
-  return Object.keys(convictLoginsAndPasswords)
-    .filter(key => Boolean(convictLoginsAndPasswords[key]))
-    .reduce((loginsAndPasswords, key) => {
-      const parsed = parseLoginAndPassword(convictLoginsAndPasswords[key]);
+  return Object.entries(convictLoginsAndPasswords)
+    .filter(([key]) => Boolean(convictLoginsAndPasswords[key]))
+    .reduce((loginsAndPasswords, [key, value]) => {
+      const parsed = parseLoginAndPassword(value);
       loginsAndPasswords[key] = parsed;
       return loginsAndPasswords;
     }, {} as CredentialsStorageLoginsAndPasswords);

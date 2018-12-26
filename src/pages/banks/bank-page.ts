@@ -1,6 +1,5 @@
 import { LoginAndPassword } from '../../credentials';
 
-export default interface BookkeepingPage {
+export default interface BankPage {
   logIn: (loginAndPassword: LoginAndPassword) => Promise<boolean>;
-  getZusDraAmount: (date: Date) => Promise<number>;
 }

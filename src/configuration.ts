@@ -9,6 +9,11 @@ const configuration = convict({
       doc: 'WFirma login and password',
       env: 'SC_LAP_WFIRMA',
       default: null
+    },
+    alior: {
+      doc: 'Alior bank login and password',
+      env: 'SC_LAP_ALIOR',
+      default: null
     }
   }
 });
