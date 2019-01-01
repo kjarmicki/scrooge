@@ -1,8 +1,8 @@
 import { URL } from 'url';
 import { Page } from 'puppeteer';
 import BankPage from './bank-page';
-import { LoginAndPassword } from '../../credentials';
-import { requireElements } from '../../utils//puppeteer';
+import { LoginAndPassword } from '../credentials';
+import { requireElements } from '../utils//puppeteer';
 
 function url(relative: string): string {
   return `https://system.aliorbank.pl/${relative}`;
@@ -44,8 +44,8 @@ export default function createAliorBankPage(page: Page): BankPage {
       waitUntil: 'domcontentloaded'
     });
 
-    const {href} = new URL(page.url());
-    return href.endsWith(URLS.LOGIN.COMPLETE);
+    const {pathname} = new URL(page.url());
+    return pathname.endsWith(URLS.LOGIN.COMPLETE);
   }
 
   async function typeInPassword(password: string): Promise<void> {

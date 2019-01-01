@@ -11,3 +11,11 @@ export async function requireElements(page: Page, ...selectors: string[]): Promi
   }
   return elements as ElementHandle<Element>[];
 }
+
+export async function waitForSelector(page: Page, selector: string): Promise<void> {
+  try {
+    await page.waitForSelector(selector);
+  } catch {
+    throw new Error(`Could not find awaited element for selector ${selector}`);
+  }
+}

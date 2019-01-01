@@ -1,6 +1,6 @@
 import TaxPayment from './tax-payment';
-import BookkeepingPage from '../../pages/bookkeeping/bookkeeping-page';
-import BankPage from '../../pages/banks/bank-page';
+import BookkeepingPage from '../bookkeeping/bookkeeping-page';
+import BankPage from '../banks/bank-page';
 
 export default function zusDraPayment(bankPage: BankPage, bookkeepingPage: BookkeepingPage): TaxPayment {
   function make(): Promise<boolean> {
