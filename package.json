@@ -4,12 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "parcel watch --public-url ./ --target=node src/index.ts",
-    "build": "parcel build --no-cache --public-url ./ --target=node src/index.ts",
-    "execute": "node dist/index",
-    "start": "npm run build && npm run execute",
-    "debug": "node --inspect-brk --require ts-node/register src/index.ts",
-    "start:ts": "node --require ts-node/register src/index.ts"
+    "start": "node --require ts-node/register src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +21,6 @@
     "@types/lodash": "4.14.119",
     "@types/node": "10.12.12",
     "@types/puppeteer": "1.10.1",
-    "parcel-bundler": "1.10.3",
     "ts-node": "7.0.1",
     "tslint": "5.11.0",
     "tslint-config-semistandard": "7.0.0",
