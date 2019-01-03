@@ -1,13 +1,15 @@
 import Company from '../companies/company';
 
+type Vat = 'zw.' | 5 | 8 | 23;
+
 export interface InvoiceService {
-  name: string;
-  amount: number;
+  title: string;
+  count: number;
   netAmount: number;
-  vat: number;
+  vat: Vat;
 }
 
-export default interface Invoice {
+export interface Invoice {
   buyer: Company;
   dates: {
     issue: Date;

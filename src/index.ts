@@ -16,23 +16,6 @@ import createAliorBankPage from './banks/alior-bank-page';
       console.error('Unable to login to wfirma page');
       return;
     }
-    wfirmaPage.issueInvoice({
-      buyer: {
-        name: 'Silvair',
-        nip: 9452164348
-      },
-      dates: {
-        issue: new Date('2019-01-03'),
-        sale: new Date('2019-01-03'),
-        paid: new Date('2019-01-04')
-      },
-      services: [{
-        name: 'robienie rzeczy',
-        amount: 1,
-        netAmount: 300,
-        vat: 23
-      }]
-    });
   } catch (err) {
     console.error('Error while logging in', err);
   } finally {

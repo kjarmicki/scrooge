@@ -1,10 +1,10 @@
 import { URL } from 'url';
 import * as assert from 'assert';
 import { Page, ElementHandle } from 'puppeteer';
-import Invoice from '../invoices/invoice';
+import { Invoice, InvoiceService } from '../invoices/invoice';
 import BookkeepingPage from './bookkeeping-page';
 import { LoginAndPassword } from '../credentials';
-import { requireElements, waitForSelector } from '../utils/puppeteer';
+import { requireElements, waitForSelector, inputType } from '../utils/puppeteer';
 
 function url(relative: string) {
   return `https://wfirma.pl/${relative}`;
@@ -38,9 +38,12 @@ const SELECTORS = {
     }
   },
   DIALOG: {
-    BOX: '.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front.ui-draggable',
+    BOX: '.dialogbox-content',
     AUTOCOMPLETE: {
       FIRST_ITEM: '.ui-autocomplete.ui-menu li:first-child a'
+    },
+    ACTIONS: {
+      SAVE: '.dialogbox-content .form-actions [data-action="save"]'
     },
     INVOICE: {
       BUYER: '#ContractorDetailName',
@@ -52,6 +55,13 @@ const SELECTORS = {
       },
       OPTIONS: {
         PAID: '#InvoiceAlreadypaidInitial ~ .check-box'
+      },
+      SERVICES: {
+        TITLE: (order: number) => `#positions .row:nth-child(${order}) input[name*="[name]"]`,
+        COUNT: (order: number) => `#positions .row:nth-child(${order}) input[name*="[count]"]`,
+        NET_AMOUNT: (order: number) => `#positions .row:nth-child(${order}) input[name*="[price]"]`,
+        VAT: (order: number) => `#positions .row:nth-child(${order}) [name*="[vat_code_id]"] + input`,
+        ADD_ROW: '#positions + .btn'
       }
     }
   },
@@ -102,7 +112,10 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     await openIssueInvoiceDialog();
     await selectExistingBuyer(invoice);
     await fillInInvoiceDates(invoice);
-    // TODO: services
+    for (let i = 0; i < invoice.services.length; i++) {
+      await fillInServiceDetails(invoice.services[i], i + 1);
+    }
+    await saveInvoice();
     return true;
   }
 
@@ -160,6 +173,31 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     await page.evaluate((inputSelector, inputValue) => {
       document.querySelector(inputSelector).value = inputValue;
     }, inputSelector, inputValue);
+  }
+
+  async function fillInServiceDetails(invoiceService: InvoiceService, order: number): Promise<void> {
+    const {TITLE, COUNT, NET_AMOUNT, VAT} = SELECTORS.DIALOG.INVOICE.SERVICES;
+    const titleExists = Boolean(await page.$(TITLE(order)));
+    if (!titleExists) {
+      await addServiceRow();
+    }
+    const [title, count, netAmount, vat] = await requireElements(page,
+      TITLE(order), COUNT(order), NET_AMOUNT(order), VAT(order));
+    await inputType(title, invoiceService.title);
+    await inputType(count, invoiceService.count.toString());
+    await inputType(netAmount, invoiceService.netAmount.toString());
+    await inputType(vat, invoiceService.vat.toString());
+  }
+
+  async function addServiceRow(): Promise<void> {
+    await page.evaluate((addRowSelector) => {
+      document.querySelector(addRowSelector).click();
+    }, SELECTORS.DIALOG.INVOICE.SERVICES.ADD_ROW);
+  }
+
+  async function saveInvoice(): Promise<void> {
+    const [saveAction] = await requireElements(page, SELECTORS.DIALOG.ACTIONS.SAVE);
+    await saveAction.click();
   }
 
   return {

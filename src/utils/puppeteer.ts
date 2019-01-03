@@ -19,3 +19,8 @@ export async function waitForSelector(page: Page, selector: string): Promise<voi
     throw new Error(`Could not find awaited element for selector ${selector}`);
   }
 }
+
+export async function inputType(input: ElementHandle<Element>, contents: string): Promise<void> {
+  await input.click();
+  await input.type(contents);
+}
