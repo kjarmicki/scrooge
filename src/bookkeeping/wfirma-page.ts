@@ -1,6 +1,6 @@
 import { URL } from 'url';
 import * as assert from 'assert';
-import { Page, ElementHandle } from 'puppeteer';
+import { Page } from 'puppeteer';
 import { Invoice, InvoiceService } from '../invoices/invoice';
 import BookkeepingPage from './bookkeeping-page';
 import { LoginAndPassword } from '../credentials';
@@ -115,7 +115,6 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     for (let i = 0; i < invoice.services.length; i++) {
       await fillInServiceDetails(invoice.services[i], i + 1);
     }
-    await saveInvoice();
     return true;
   }
 
@@ -193,11 +192,6 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     await page.evaluate((addRowSelector) => {
       document.querySelector(addRowSelector).click();
     }, SELECTORS.DIALOG.INVOICE.SERVICES.ADD_ROW);
-  }
-
-  async function saveInvoice(): Promise<void> {
-    const [saveAction] = await requireElements(page, SELECTORS.DIALOG.ACTIONS.SAVE);
-    await saveAction.click();
   }
 
   return {

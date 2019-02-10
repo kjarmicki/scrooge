@@ -1,6 +1,6 @@
 import Company from '../companies/company';
 
-type Vat = 'zw.' | 5 | 8 | 23;
+export type Vat = 'zw.' | 5 | 8 | 23;
 
 export interface InvoiceService {
   title: string;

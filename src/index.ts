@@ -16,7 +16,9 @@ import createCredentials from './credentials';
   });
   browser.on('targetcreated', async target => {
     const page: any = await target.page();
-    await page._client.send('Emulation.clearDeviceMetricsOverride');
+    if (page) {
+      await page._client.send('Emulation.clearDeviceMetricsOverride');
+    }
   });
   await action(browser, credentials);
 })();
