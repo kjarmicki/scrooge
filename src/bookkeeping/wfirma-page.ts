@@ -2,6 +2,7 @@ import { URL } from 'url';
 import * as assert from 'assert';
 import { Page } from 'puppeteer';
 import { Invoice, InvoiceService } from '../invoices/invoice';
+import { InternalProof, InternalProofItem } from '../incomes/internal-proof';
 import BookkeepingPage from './bookkeeping-page';
 import { LoginAndPassword } from '../credentials';
 import { requireElements, waitForSelector, inputType } from '../utils/puppeteer';
@@ -23,6 +24,11 @@ const URLS = {
   },
   INVOICES: {
     LIST: 'invoices/index/all'
+  },
+  INCOMES: {
+    OTHERS: {
+      LIST: 'invoices/index/income'
+    }
   }
 };
 
@@ -44,6 +50,18 @@ const SELECTORS = {
     },
     ACTIONS: {
       SAVE: '.dialogbox-content .form-actions [data-action="save"]'
+    },
+    INCOMES: {
+      OTHERS: {
+        DATES: {
+          ISSUE: '#InternalProofDate'
+        },
+        ITEMS: {
+          TITLE: (order: number) => `.dialogbox-content .tab-container .tab-data:nth-child(${order}) textarea[name*="[name]"]`,
+          COST: (order: number) => `.dialogbox-content .tab-container .tab-data:nth-child(${order}) input[name*="[total]"]`,
+          ADD_ROW: '.dialogbox-content .tab-header a[href*="/add/"]'
+        }
+      }
     },
     INVOICE: {
       BUYER: '#ContractorDetailName',
@@ -69,6 +87,11 @@ const SELECTORS = {
     HEADER: {
       INVOICE: {
         NEW: '.navbar-menu.actions-table li ul li a'
+      },
+      INCOMES: {
+        OTHER: {
+          NEW: '.navbar-menu.actions-table a[href*=internal_proofs]'
+        }
       }
     },
     DATE: {
@@ -113,7 +136,7 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     await selectExistingBuyer(invoice);
     await fillInInvoiceDates(invoice);
     for (let i = 0; i < invoice.services.length; i++) {
-      await fillInServiceDetails(invoice.services[i], i + 1);
+      await fillInInvoiceServiceDetails(invoice.services[i], i + 1);
     }
     return true;
   }
@@ -174,11 +197,11 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     }, inputSelector, inputValue);
   }
 
-  async function fillInServiceDetails(invoiceService: InvoiceService, order: number): Promise<void> {
+  async function fillInInvoiceServiceDetails(invoiceService: InvoiceService, order: number): Promise<void> {
     const {TITLE, COUNT, NET_AMOUNT, VAT} = SELECTORS.DIALOG.INVOICE.SERVICES;
     const titleExists = Boolean(await page.$(TITLE(order)));
     if (!titleExists) {
-      await addServiceRow();
+      await addInvoiceServiceRow();
     }
     const [title, count, netAmount, vat] = await requireElements(page,
       TITLE(order), COUNT(order), NET_AMOUNT(order), VAT(order));
@@ -188,15 +211,58 @@ export default function createWfirmaPage(page: Page): BookkeepingPage {
     await inputType(vat, invoiceService.vat.toString());
   }
 
-  async function addServiceRow(): Promise<void> {
+  async function addInvoiceServiceRow(): Promise<void> {
     await page.evaluate((addRowSelector) => {
       document.querySelector(addRowSelector).click();
     }, SELECTORS.DIALOG.INVOICE.SERVICES.ADD_ROW);
   }
 
+  async function addInternalProof(internalProof: InternalProof): Promise<boolean> {
+    await page.goto(url(URLS.INCOMES.OTHERS.LIST));
+    page.waitFor(500);
+    await selectTableDate(internalProof.issueDate);
+    await openAddInternalProofDialog();
+    await fillInInternalProofDate(internalProof);
+    for (let i = 0; i < internalProof.items.length; i++) {
+      await fillInInternalProofItemDetails(internalProof.items[i], i + 1);
+    }
+    return true;
+  }
+
+  async function openAddInternalProofDialog(): Promise<void> {
+    await page.evaluate((invoiceNewSelector) => {
+      document.querySelector(invoiceNewSelector).click();
+    }, SELECTORS.TABLE.HEADER.INCOMES.OTHER.NEW);
+    await waitForSelector(page, SELECTORS.DIALOG.BOX);
+  }
+
+  async function fillInInternalProofDate(internalProof: InternalProof): Promise<void> {
+    await fillInDate(SELECTORS.DIALOG.INCOMES.OTHERS.DATES.ISSUE, internalProof.issueDate);
+  }
+
+  async function fillInInternalProofItemDetails(item: InternalProofItem, order: number): Promise<void> {
+    const {TITLE, COST} = SELECTORS.DIALOG.INCOMES.OTHERS.ITEMS;
+    const titleExists = Boolean(await page.$(TITLE(order)));
+    if (!titleExists) {
+      await addInternalProofItemRow();
+      await waitForSelector(page, TITLE(order));
+    }
+    const [title, cost] = await requireElements(page,
+      TITLE(order), COST(order));
+    await inputType(title, item.title);
+    await inputType(cost, item.cost.toString());
+  }
+
+  async function addInternalProofItemRow(): Promise<void> {
+    await page.evaluate((addRowSelector) => {
+      document.querySelector(addRowSelector).click();
+    }, SELECTORS.DIALOG.INCOMES.OTHERS.ITEMS.ADD_ROW);
+  }
+
   return {
     logIn,
     getZusDraAmount,
-    issueInvoice
+    issueInvoice,
+    addInternalProof
   };
 }
